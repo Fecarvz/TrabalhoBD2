@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Médicos{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Médicos</h1>
+    <a href="{{ url_for('medico_add') }}" class="btn btn-primary">Adicionar Novo Médico</a>
+</div>
+
+{% if medicos %}
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full table">
+        <thead>
+            <tr>
+                <th>CRM</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for medico in medicos %}
+            <tr>
+                <td>{{ medico.crm }}</td>
+                <td>{{ medico.nome }}</td>
+                <td>{{ medico.telefone if medico.telefone else 'N/A' }}</td>
+                <td class="flex space-x-2">
+                    <a href="{{ url_for('medico_edit', crm=medico.crm) }}" class="btn btn-warning text-xs px-3 py-1">Editar</a>
+                     <a href="{{ url_for('medico_manage_especialidades', crm=medico.crm) }}" class="btn btn-secondary text-xs px-3 py-1">Especialidades</a>
+                    <form action="{{ url_for('medico_delete', crm=medico.crm) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover este médico?');">
+                        <button type="submit" class="btn btn-danger text-xs px-3 py-1">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+    <p class="font-bold">Nenhum médico encontrado.</p>
+    <p>Adicione um novo médico para começar.</p>
+</div>
+{% endif %}
+{% endblock %}

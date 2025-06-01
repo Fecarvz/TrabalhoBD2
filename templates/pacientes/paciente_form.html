@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_action }} Paciente{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ form_action }} Paciente</h1>
+    <form method="POST" action="{{ request.path }}">
+        <div class="mb-4">
+            <label for="cpf" class="form-label">CPF <span class="text-red-500">*</span></label>
+            <input type="text" name="cpf" id="cpf" value="{{ paciente.cpf if paciente else '' }}"
+                   class="form-input" required maxlength="11"
+                   {% if form_action == 'Editar' and paciente.cpf %}readonly class="bg-gray-100"{% endif %}>
+            {% if form_action == 'Editar' and paciente.cpf %}
+            <p class="text-xs text-gray-500 mt-1">CPF não pode ser alterado.</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-4">
+            <label for="nome" class="form-label">Nome Completo <span class="text-red-500">*</span></label>
+            <input type="text" name="nome" id="nome" value="{{ paciente.nome if paciente else '' }}" class="form-input" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="telefone" class="form-label">Telefone</label>
+            <input type="tel" name="telefone" id="telefone" value="{{ paciente.telefone if paciente else '' }}" class="form-input">
+        </div>
+
+        <div class="mb-4">
+            <label for="endereco" class="form-label">Endereço</label>
+            <textarea name="endereco" id="endereco" rows="3" class="form-input">{{ paciente.endereco if paciente else '' }}</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label for="idade" class="form-label">Idade</label>
+                <input type="number" name="idade" id="idade" value="{{ paciente.idade if paciente and paciente.idade is not none else '' }}" class="form-input" min="0">
+            </div>
+            <div>
+                <label for="sexo" class="form-label">Sexo</label>
+                <select name="sexo" id="sexo" class="form-input">
+                    <option value="" {% if not paciente or not paciente.sexo %}selected{% endif %}>Selecione...</option>
+                    <option value="Masculino" {% if paciente and paciente.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                    <option value="Feminino" {% if paciente and paciente.sexo == 'Feminino' %}selected{% endif %}>Feminino</option>
+                    <option value="Outro" {% if paciente and paciente.sexo == 'Outro' %}selected{% endif %}>Outro</option>
+                    <option value="Não informar" {% if paciente and paciente.sexo == 'Não informar' %}selected{% endif %}>Prefiro não informar</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-x-4">
+            <a href="{{ url_for('pacientes_list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Salvar Alterações' if form_action == 'Editar' else 'Adicionar Paciente' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

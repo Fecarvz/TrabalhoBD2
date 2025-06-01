@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_action }} Doença{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ form_action }} Doença</h1>
+    <form method="POST" action="{{ request.path }}">
+        {% if doenca and doenca.iddoenca %}
+            <input type="hidden" name="id_doenca" value="{{ doenca.iddoenca }}">
+        {% endif %}
+        <div class="mb-4">
+            <label for="nome" class="form-label">Nome da Doença <span class="text-red-500">*</span></label>
+            <input type="text" name="nome" id="nome" value="{{ doenca.nome if doenca else '' }}" class="form-input" required>
+            <p class="text-xs text-gray-500 mt-1">O nome da doença deve ser único.</p>
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-x-4">
+            <a href="{{ url_for('doencas_list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Salvar Alterações' if form_action == 'Editar' else 'Adicionar Doença' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Pacientes{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Pacientes</h1>
+    <a href="{{ url_for('paciente_add') }}" class="btn btn-primary">Adicionar Novo Paciente</a>
+</div>
+
+{% if pacientes %}
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full table">
+        <thead>
+            <tr>
+                <th>CPF</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Idade</th>
+                <th>Sexo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for paciente in pacientes %}
+            <tr>
+                <td>{{ paciente.cpf }}</td>
+                <td>{{ paciente.nome }}</td>
+                <td>{{ paciente.telefone if paciente.telefone else 'N/A' }}</td>
+                <td>{{ paciente.idade if paciente.idade is not none else 'N/A' }}</td>
+                <td>{{ paciente.sexo if paciente.sexo else 'N/A' }}</td>
+                <td class="flex space-x-2">
+                    <a href="{{ url_for('paciente_edit', cpf=paciente.cpf) }}" class="btn btn-warning text-xs px-3 py-1">Editar</a>
+                    <form action="{{ url_for('paciente_delete', cpf=paciente.cpf) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover este paciente?');">
+                        <button type="submit" class="btn btn-danger text-xs px-3 py-1">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+    <p class="font-bold">Nenhum paciente encontrado.</p>
+    <p>Adicione um novo paciente para começar.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Consultas{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Consultas Agendadas</h1>
+    <a href="{{ url_for('consulta_add') }}" class="btn btn-primary">Agendar Nova Consulta</a>
+</div>
+
+{% if consultas %}
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Data Início</th>
+                <th>Data Fim</th>
+                <th>Paga</th>
+                <th>Valor Pago</th>
+                <th>Realizada</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for consulta in consultas %}
+            <tr>
+                <td>{{ consulta.idconsulta }}</td>
+                <td>
+                    <a href="{{ url_for('paciente_edit', cpf=consulta.paciente_cpf) }}" class="text-blue-600 hover:underline">
+                        {{ consulta.paciente_nome }} ({{ consulta.paciente_cpf }})
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ url_for('medico_edit', crm=consulta.medico_crm) }}" class="text-blue-600 hover:underline">
+                        {{ consulta.medico_nome }} ({{ consulta.medico_crm }})
+                    </a>
+                </td>
+                <td>{{ consulta.datainicio.strftime('%d/%m/%Y %H:%M') if consulta.datainicio else 'N/A' }}</td>
+                <td>{{ consulta.datafim.strftime('%d/%m/%Y %H:%M') if consulta.datafim else 'N/A' }}</td>
+                <td>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if consulta.pago %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}">
+                        {{ 'Sim' if consulta.pago else 'Não' }}
+                    </span>
+                </td>
+                <td>R$ {{ "%.2f"|format(consulta.valorpago|float) if consulta.valorpago is not none else '0.00' }}</td>
+                <td>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if consulta.realizada %} bg-green-100 text-green-800 {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                        {{ 'Sim' if consulta.realizada else 'Não' }}
+                    </span>
+                </td>
+                <td class="flex space-x-2">
+                    <a href="{{ url_for('consulta_edit', id_consulta=consulta.idconsulta) }}" class="btn btn-warning text-xs px-3 py-1">Editar</a>
+                    <form action="{{ url_for('consulta_delete', id_consulta=consulta.idconsulta) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover esta consulta?');">
+                        <button type="submit" class="btn btn-danger text-xs px-3 py-1">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+    <p class="font-bold">Nenhuma consulta encontrada.</p>
+    <p>Agende uma nova consulta para começar.</p>
+</div>
+{% endif %}
+{% endblock %}
