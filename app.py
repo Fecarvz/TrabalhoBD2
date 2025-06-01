@@ -20,27 +20,7 @@ def index():
 # --- Rotas para Pacientes ---
 @app.route('/pacientes')
 def pacientes_list():
-    """Exibe a lista de todos os pacientes."""
-    pacientes = db.get_all_pacientes() # Agora retorna apenas CPF e nome
-    # Para a lista completa, precisaríamos de outra função ou ajustar get_all_pacientes
-    # Por ora, vamos buscar todos os dados para a lista de pacientes.
-    # Idealmente, teríamos get_all_pacientes_summary() e get_all_pacientes_details()
-    # Mas para simplificar, vamos rebuscar todos os dados aqui se necessário para a view.
-    # No entanto, o template pacientes_list.html usa os campos completos.
-    # Vamos criar uma função get_all_pacientes_details() em db.py ou ajustar a existente.
-    # Por enquanto, vou assumir que get_all_pacientes() retorna todos os campos para a lista.
-    # Para evitar confusão, vou reverter a mudança em db.py para get_all_pacientes e get_all_medicos
-    # e criar funções separadas para pegar apenas nome/id para formulários.
-    # Esta é uma decisão de design. Para este exemplo, manterei simples e buscarei todos os dados.
-    # Se a performance fosse crítica, otimizaríamos as queries.
-    
-    # Revertendo a lógica para get_all_pacientes e get_all_medicos em db.py para buscar todos os campos.
-    # As funções para formulários serão get_pacientes_for_select() e get_medicos_for_select().
-    # No entanto, para manter o código já fornecido consistente, vou usar o que já está lá
-    # e ajustar o template pacientes_list se necessário, ou assumir que o db.py foi ajustado.
-    # Assumindo que db.get_all_pacientes() retorna todos os campos necessários para pacientes_list.html.
-    
-    pacientes_data = db.execute_query("SELECT * FROM Paciente ORDER BY nome;", fetchall=True) # Usando execute_query diretamente para clareza
+    pacientes_data = db.get_all_pacientes_details() 
     if pacientes_data is None: 
         flash('Erro ao buscar pacientes do banco de dados.', 'error')
         pacientes_data = []
@@ -49,7 +29,6 @@ def pacientes_list():
 
 @app.route('/pacientes/add', methods=['GET', 'POST'])
 def paciente_add():
-    """Adiciona um novo paciente."""
     if request.method == 'POST':
         cpf = request.form['cpf']
         nome = request.form['nome']
@@ -86,7 +65,6 @@ def paciente_add():
 
 @app.route('/pacientes/edit/<string:cpf>', methods=['GET', 'POST'])
 def paciente_edit(cpf):
-    """Edita um paciente existente."""
     paciente = db.get_paciente_by_cpf(cpf)
     if not paciente:
         flash('Paciente não encontrado!', 'error')
@@ -107,9 +85,8 @@ def paciente_edit(cpf):
             idade = int(idade_str) if idade_str and idade_str.strip() else None
             if idade is not None and idade < 0:
                 flash('Idade não pode ser negativa.', 'error')
-                # Passar os dados atuais do formulário de volta, não o 'paciente' original do GET
                 form_data = dict(request.form)
-                form_data['CPF'] = cpf # Adicionar CPF pois ele é readonly no form
+                form_data['CPF'] = cpf 
                 return render_template('pacientes/paciente_form.html', paciente=form_data, cpf_original=cpf, form_action='Editar')
         except ValueError:
             flash('Idade deve ser um número.', 'error')
@@ -147,7 +124,7 @@ def paciente_delete(cpf):
 # --- Rotas para Médicos ---
 @app.route('/medicos')
 def medicos_list():
-    medicos_data = db.execute_query("SELECT * FROM Medico ORDER BY nome;", fetchall=True)
+    medicos_data = db.get_all_medicos_details()
     if medicos_data is None:
         flash('Erro ao buscar médicos do banco de dados.', 'error')
         medicos_data = []
@@ -394,7 +371,6 @@ def medico_manage_especialidades(crm):
 # --- Rotas para Consultas ---
 @app.route('/consultas')
 def consultas_list():
-    """Exibe a lista de todas as consultas."""
     consultas = db.get_all_consultas_details()
     if consultas is None:
         flash('Erro ao buscar consultas.', 'error')
@@ -403,16 +379,15 @@ def consultas_list():
 
 @app.route('/consultas/add', methods=['GET', 'POST'])
 def consulta_add():
-    """Adiciona uma nova consulta."""
-    pacientes = db.get_all_pacientes() # Para o dropdown de pacientes
-    medicos = db.get_all_medicos()     # Para o dropdown de médicos
+    pacientes = db.get_all_pacientes() 
+    medicos = db.get_all_medicos()     
 
     if request.method == 'POST':
         data_inicio_str = request.form.get('dataInicio')
         data_fim_str = request.form.get('dataFim')
-        pago = 'pago' in request.form # Checkbox
+        pago = 'pago' in request.form 
         valor_pago_str = request.form.get('valorPago')
-        realizada = 'realizada' in request.form # Checkbox
+        realizada = 'realizada' in request.form 
         medico_crm = request.form.get('medico_CRM')
         paciente_cpf = request.form.get('paciente_CPF')
 
@@ -422,9 +397,8 @@ def consulta_add():
                                    form_action='Adicionar', 
                                    pacientes=pacientes, 
                                    medicos=medicos,
-                                   consulta=request.form) # Repopular form com dados atuais
+                                   consulta=request.form) 
         
-        # Conversão e validação de data/hora
         try:
             data_inicio = datetime.datetime.fromisoformat(data_inicio_str)
             data_fim = datetime.datetime.fromisoformat(data_fim_str) if data_fim_str else None
@@ -435,7 +409,6 @@ def consulta_add():
             flash('Formato de Data de Início ou Data de Fim inválido.', 'error')
             return render_template('consultas/consulta_form.html', form_action='Adicionar', pacientes=pacientes, medicos=medicos, consulta=request.form)
 
-        # Conversão de valorPago
         valor_pago = None
         if valor_pago_str:
             try:
@@ -467,7 +440,6 @@ def consulta_add():
 
 @app.route('/consultas/edit/<int:id_consulta>', methods=['GET', 'POST'])
 def consulta_edit(id_consulta):
-    """Edita uma consulta existente."""
     consulta = db.get_consulta_by_id(id_consulta)
     if not consulta:
         flash('Consulta não encontrada!', 'error')
@@ -487,9 +459,8 @@ def consulta_edit(id_consulta):
 
         if not data_inicio_str or not medico_crm or not paciente_cpf:
             flash('Data de Início, Médico e Paciente são obrigatórios!', 'error')
-            # Recarregar o formulário com os dados atuais e os dados originais da consulta para referência
             current_form_data = dict(request.form)
-            current_form_data['idconsulta'] = id_consulta # Manter o ID
+            current_form_data['idconsulta'] = id_consulta 
             return render_template('consultas/consulta_form.html', 
                                    form_action='Editar', 
                                    consulta=current_form_data, 
@@ -538,7 +509,6 @@ def consulta_edit(id_consulta):
                                    pacientes=pacientes, 
                                    medicos=medicos)
     
-    # Para o GET request, formatar as datas para o input datetime-local
     if consulta.get('datainicio'):
         consulta['datainicio_form'] = consulta['datainicio'].isoformat(sep='T', timespec='minutes') if isinstance(consulta['datainicio'], datetime.datetime) else consulta['datainicio']
     if consulta.get('datafim'):
@@ -553,7 +523,6 @@ def consulta_edit(id_consulta):
 
 @app.route('/consultas/delete/<int:id_consulta>', methods=['POST'])
 def consulta_delete(id_consulta):
-    """Deleta uma consulta."""
     consulta = db.get_consulta_by_id(id_consulta)
     if not consulta:
         flash('Consulta não encontrada!', 'error')
@@ -564,6 +533,44 @@ def consulta_delete(id_consulta):
     else:
         flash('Erro ao remover consulta. Verifique se há diagnósticos associados (ON DELETE RESTRICT).', 'error')
     return redirect(url_for('consultas_list'))
+
+# --- Rota para Agenda ---
+@app.route('/agenda', methods=['GET', 'POST'])
+def agenda_view():
+    medicos_select = db.get_all_medicos() # Para o dropdown de seleção de médico
+    consultas_medico = None
+    selected_medico_crm = None
+    selected_medico_nome = None
+    selected_data = None
+
+    if request.method == 'POST':
+        selected_medico_crm = request.form.get('medico_CRM')
+        selected_data = request.form.get('data_agenda') # Espera YYYY-MM-DD
+
+        if not selected_medico_crm:
+            flash('Por favor, selecione um médico.', 'warning')
+        else:
+            medico_info = db.get_medico_by_crm(selected_medico_crm)
+            if medico_info:
+                selected_medico_nome = medico_info['nome']
+            
+            # Se uma data não for fornecida, a função db.get_consultas_by_medico_and_date
+            # mostrará as consultas futuras por padrão.
+            consultas_medico = db.get_consultas_by_medico_and_date(selected_medico_crm, selected_data if selected_data else None)
+            if consultas_medico is None: # Erro na query
+                flash('Erro ao buscar a agenda do médico.', 'error')
+                consultas_medico = [] # Evitar erro no template
+            elif not consultas_medico:
+                data_formatada = datetime.datetime.strptime(selected_data, '%Y-%m-%d').strftime('%d/%m/%Y') if selected_data else "futuras"
+                flash(f'Nenhuma consulta encontrada para Dr(a). {selected_medico_nome or selected_medico_crm} para as datas {data_formatada}.', 'info')
+
+
+    return render_template('agenda/agenda_view.html', 
+                           medicos_select=medicos_select,
+                           consultas_medico=consultas_medico,
+                           selected_medico_crm=selected_medico_crm,
+                           selected_medico_nome=selected_medico_nome,
+                           selected_data=selected_data)
 
 
 if __name__ == '__main__':

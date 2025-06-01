@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda Médica{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Agenda Médica</h1>
+
+    <form method="POST" action="{{ url_for('agenda_view') }}" class="mb-8 p-6 border rounded-lg bg-gray-50">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+                <label for="medico_CRM" class="form-label">Selecione o Médico <span class="text-red-500">*</span></label>
+                <select name="medico_CRM" id="medico_CRM" class="form-input" required>
+                    <option value="">-- Todos os Médicos --</option>
+                    {% for m in medicos_select %}
+                    <option value="{{ m.crm }}" {% if selected_medico_crm == m.crm %}selected{% endif %}>
+                        {{ m.nome }} ({{ m.crm }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="data_agenda" class="form-label">Data da Agenda (Opcional)</label>
+                <input type="date" name="data_agenda" id="data_agenda" 
+                       value="{{ selected_data if selected_data else '' }}" 
+                       class="form-input">
+                <p class="text-xs text-gray-500 mt-1">Deixe em branco para ver todas as consultas futuras.</p>
+            </div>
+            <div class="md:pt-5"> <button type="submit" class="btn btn-primary w-full">Ver Agenda</button>
+            </div>
+        </div>
+    </form>
+
+    {% if selected_medico_crm and consultas_medico is not none %}
+    <div class="mt-8">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">
+            Agenda de Dr(a). {{ selected_medico_nome or selected_medico_crm }}
+            {% if selected_data %}
+                para {{ selected_data | strptime('%Y-%m-%d') | strftime('%d/%m/%Y') }}
+            {% else %}
+                (Consultas Futuras)
+            {% endif %}
+        </h2>
+
+        {% if consultas_medico %}
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full table">
+                <thead>
+                    <tr>
+                        <th>ID Consulta</th>
+                        <th>Paciente</th>
+                        <th>Data Início</th>
+                        <th>Data Fim</th>
+                        <th>Paga</th>
+                        <th>Realizada</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for consulta in consultas_medico %}
+                    <tr>
+                        <td>{{ consulta.idconsulta }}</td>
+                        <td>
+                            <a href="{{ url_for('paciente_edit', cpf=consulta.paciente_cpf) }}" class="text-blue-600 hover:underline">
+                                {{ consulta.paciente_nome }}
+                            </a>
+                        </td>
+                        <td>{{ consulta.datainicio.strftime('%d/%m/%Y %H:%M') if consulta.datainicio else 'N/A' }}</td>
+                        <td>{{ consulta.datafim.strftime('%d/%m/%Y %H:%M') if consulta.datafim else 'N/A' }}</td>
+                        <td>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if consulta.pago %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}">
+                                {{ 'Sim' if consulta.pago else 'Não' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if consulta.realizada %} bg-green-100 text-green-800 {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                                {{ 'Sim' if consulta.realizada else 'Não' }}
+                            </span>
+                        </td>
+                        <td class="flex space-x-1">
+                            <a href="{{ url_for('consulta_edit', id_consulta=consulta.idconsulta) }}" class="btn btn-warning text-xs px-2 py-1">Editar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif request.method == 'POST' %} 
+        <!-- Mensagem de 'nenhuma consulta' já é tratada pelo flash em app.py, 
+             mas podemos ter um placeholder aqui se quisermos, caso o flash não seja suficiente. -->
+        {% endif %}
+    </div>
+    {% elif request.method == 'POST' and not selected_medico_crm %}
+        {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Simplesmente para garantir que o filtro de data funcione bem com o strptime no Jinja
+    // Isso é mais uma nota, já que o Jinja lida com isso no servidor.
+</script>
+{% endblock %}

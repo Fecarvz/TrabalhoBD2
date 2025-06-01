@@ -29,7 +29,9 @@
                 <a href="{{ url_for('medicos_list') }}" class="px-3 py-2 hover:bg-gray-700 rounded-md">Médicos</a>
                 <a href="{{ url_for('especialidades_list') }}" class="px-3 py-2 hover:bg-gray-700 rounded-md">Especialidades</a>
                 <a href="{{ url_for('doencas_list') }}" class="px-3 py-2 hover:bg-gray-700 rounded-md">Doenças</a>
-                </div>
+                <a href="{{ url_for('consultas_list') }}" class="px-3 py-2 hover:bg-gray-700 rounded-md">Consultas</a>
+                <a href="{{ url_for('agenda_view') }}" class="px-3 py-2 hover:bg-gray-700 rounded-md">Agenda</a>
+            </div>
         </div>
     </nav>
 
@@ -41,7 +43,7 @@
                         {% if category == 'success' %} bg-green-100 text-green-700
                         {% elif category == 'error' %} bg-red-100 text-red-700
                         {% elif category == 'warning' %} bg-yellow-100 text-yellow-700
-                        {% else %} bg-blue-100 text-blue-700
+                        {% elif category == 'info' %} bg-blue-100 text-blue-700  {% else %} bg-blue-100 text-blue-700
                         {% endif %}" role="alert">
                         {{ message }}
                     </div>
@@ -56,5 +58,6 @@
     <footer class="bg-gray-800 text-white text-center p-4 mt-8">
         <p>&copy; {{ current_year }} Clínica App. Todos os direitos reservados.</p>
     </footer>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
