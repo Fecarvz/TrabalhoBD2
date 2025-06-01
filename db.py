@@ -1,12 +1,11 @@
 import psycopg2
-import psycopg2.extras # Para usar RealDictCursor
+import psycopg2.extras 
 
-# --- IMPORTANTE: Configure suas credenciais do banco de dados aqui ---
-DB_NAME = "teste"  # Nome do seu banco de dados
-DB_USER = "felipe"    # Seu usuário do PostgreSQL
-DB_PASSWORD = "102030" # Sua senha do PostgreSQL
-DB_HOST = "192.168.1.15"   # Geralmente 'localhost'
-DB_PORT = "5432"        # Porta padrão do PostgreSQL
+DB_NAME = "teste"  
+DB_USER = "felipe"    
+DB_PASSWORD = "102030"
+DB_HOST = "192.168.1.15"   
+DB_PORT = "5432"       
 
 def get_db_connection():
     """Estabelece uma conexão com o banco de dados PostgreSQL."""
