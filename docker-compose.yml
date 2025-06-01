@@ -1,0 +1,50 @@
+services:
+  web:
+    build: .
+    container_name: clinica_web_app
+    ports:
+      - "5000:5000" # Mapeia a porta 5000 do host para a porta 5000 do contentor
+    volumes:
+      - .:/app # Mapeia o diretório atual (código fonte) para /app no contentor para live reload
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development # Ou production, se preferir
+      - FLASK_DEBUG=1 # Habilita o modo debug do Flask
+      # Variáveis de ambiente para conexão com o banco de dados
+      - DATABASE_NAME=clinica_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password # Use uma senha forte em produção
+      - DATABASE_HOST=db # Nome do serviço do banco de dados no Docker Compose
+      - DATABASE_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy # Espera o serviço do banco de dados estar saudável
+    networks:
+      - clinica-network
+
+  db:
+    image: postgres:15-alpine # Imagem oficial do PostgreSQL
+    container_name: clinica_postgres_db
+    environment:
+      POSTGRES_DB: clinica_db # Nome do banco de dados a ser criado
+      POSTGRES_USER: postgres # Usuário do banco de dados
+      POSTGRES_PASSWORD: password # Senha do usuário (use uma senha forte em produção)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Volume para persistir os dados do banco
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql # Script para inicializar o schema
+    ports:
+      - "5433:5432" # Mapeia a porta 5433 do host para a 5432 do contentor (evita conflito se tiver PG local)
+    healthcheck: # Verifica se o banco de dados está pronto para aceitar conexões
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clinica_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clinica-network
+
+volumes:
+  postgres_data: # Define o volume nomeado para os dados do PostgreSQL
+
+networks:
+  clinica-network: # Define a rede customizada
+    driver: bridge

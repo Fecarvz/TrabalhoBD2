@@ -1,11 +1,13 @@
 import psycopg2
 import psycopg2.extras 
+import os
+       
 
-DB_NAME = "teste"  
-DB_USER = "felipe"    
-DB_PASSWORD = "102030"
-DB_HOST = "192.168.1.15"   
-DB_PORT = "5432"       
+DB_NAME = os.getenv("DATABASE_NAME", "teste")
+DB_USER = os.getenv("DATABASE_USER", "felipe")
+DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "102030") 
+DB_HOST = os.getenv("DATABASE_HOST", "192.168.1.15")
+DB_PORT = os.getenv("DATABASE_PORT", "5432")
 def get_db_connection():
     """Estabelece uma conexão com o banco de dados PostgreSQL."""
     try:
