@@ -1,20 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import db # Importa o módulo db.py
-import datetime # Importar o módulo datetime
+import datetime 
 
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta_aqui' # Necessário para flash messages
+app.secret_key = 'sua_chave_secreta_aqui' 
 
-# Processador de contexto para injetar variáveis em todos os templates
 @app.context_processor
 def inject_now():
-    """Injeta a data e hora atuais (ou apenas o ano) no contexto do template."""
     return {'current_year': datetime.datetime.now().year}
 
 # --- Rotas Principais ---
 @app.route('/')
 def index():
-    """Página inicial da aplicação."""
     return render_template('index.html')
 
 # --- Rotas para Pacientes ---
@@ -264,11 +261,13 @@ def especialidade_delete(id_especialidade):
 # --- Rotas para Doenças ---
 @app.route('/doencas')
 def doencas_list():
-    doencas = db.get_all_doencas()
-    if doencas is None:
+    # Para a lista principal, queremos todos os detalhes
+    doencas_detalhes = db.execute_query("SELECT * FROM Doenca ORDER BY nome;", fetchall=True)
+    if doencas_detalhes is None:
         flash('Erro ao buscar doenças.', 'error')
-        doencas = []
-    return render_template('doencas/doencas_list.html', doencas=doencas)
+        doencas_detalhes = []
+    return render_template('doencas/doencas_list.html', doencas=doencas_detalhes)
+
 
 @app.route('/doencas/add', methods=['GET', 'POST'])
 def doenca_add():
@@ -440,7 +439,7 @@ def consulta_add():
 
 @app.route('/consultas/edit/<int:id_consulta>', methods=['GET', 'POST'])
 def consulta_edit(id_consulta):
-    consulta = db.get_consulta_by_id(id_consulta)
+    consulta = db.get_consulta_by_id(id_consulta) # Usando a função que busca detalhes
     if not consulta:
         flash('Consulta não encontrada!', 'error')
         return redirect(url_for('consultas_list'))
@@ -461,6 +460,9 @@ def consulta_edit(id_consulta):
             flash('Data de Início, Médico e Paciente são obrigatórios!', 'error')
             current_form_data = dict(request.form)
             current_form_data['idconsulta'] = id_consulta 
+            # Manter os nomes para exibição no formulário de erro
+            current_form_data['paciente_nome'] = consulta['paciente_nome']
+            current_form_data['medico_nome'] = consulta['medico_nome']
             return render_template('consultas/consulta_form.html', 
                                    form_action='Editar', 
                                    consulta=current_form_data, 
@@ -474,11 +476,15 @@ def consulta_edit(id_consulta):
                 flash('Data de Fim não pode ser anterior à Data de Início.', 'error')
                 current_form_data = dict(request.form)
                 current_form_data['idconsulta'] = id_consulta
+                current_form_data['paciente_nome'] = consulta['paciente_nome']
+                current_form_data['medico_nome'] = consulta['medico_nome']
                 return render_template('consultas/consulta_form.html', form_action='Editar', consulta=current_form_data, pacientes=pacientes, medicos=medicos)
         except ValueError:
             flash('Formato de Data de Início ou Data de Fim inválido.', 'error')
             current_form_data = dict(request.form)
             current_form_data['idconsulta'] = id_consulta
+            current_form_data['paciente_nome'] = consulta['paciente_nome']
+            current_form_data['medico_nome'] = consulta['medico_nome']
             return render_template('consultas/consulta_form.html', form_action='Editar', consulta=current_form_data, pacientes=pacientes, medicos=medicos)
 
         valor_pago = None
@@ -489,11 +495,15 @@ def consulta_edit(id_consulta):
                     flash('Valor Pago não pode ser negativo.', 'error')
                     current_form_data = dict(request.form)
                     current_form_data['idconsulta'] = id_consulta
+                    current_form_data['paciente_nome'] = consulta['paciente_nome']
+                    current_form_data['medico_nome'] = consulta['medico_nome']
                     return render_template('consultas/consulta_form.html', form_action='Editar', consulta=current_form_data, pacientes=pacientes, medicos=medicos)
             except ValueError:
                 flash('Valor Pago deve ser um número.', 'error')
                 current_form_data = dict(request.form)
                 current_form_data['idconsulta'] = id_consulta
+                current_form_data['paciente_nome'] = consulta['paciente_nome']
+                current_form_data['medico_nome'] = consulta['medico_nome']
                 return render_template('consultas/consulta_form.html', form_action='Editar', consulta=current_form_data, pacientes=pacientes, medicos=medicos)
 
         if db.update_consulta(id_consulta, data_inicio, data_fim, pago, valor_pago, realizada, medico_crm, paciente_cpf) is not None:
@@ -503,6 +513,8 @@ def consulta_edit(id_consulta):
             flash('Erro ao atualizar consulta.', 'error')
             current_form_data = dict(request.form)
             current_form_data['idconsulta'] = id_consulta
+            current_form_data['paciente_nome'] = consulta['paciente_nome']
+            current_form_data['medico_nome'] = consulta['medico_nome']
             return render_template('consultas/consulta_form.html', 
                                    form_action='Editar', 
                                    consulta=current_form_data, 
@@ -523,21 +535,17 @@ def consulta_edit(id_consulta):
 
 @app.route('/consultas/delete/<int:id_consulta>', methods=['POST'])
 def consulta_delete(id_consulta):
-    consulta = db.get_consulta_by_id(id_consulta)
-    if not consulta:
-        flash('Consulta não encontrada!', 'error')
-        return redirect(url_for('consultas_list'))
-
+    # A função db.delete_consulta agora tenta deletar o diagnóstico associado primeiro.
     if db.delete_consulta(id_consulta) is not None:
-        flash('Consulta removida com sucesso!', 'success')
+        flash('Consulta e diagnóstico associado (se houver) removidos com sucesso!', 'success')
     else:
-        flash('Erro ao remover consulta. Verifique se há diagnósticos associados (ON DELETE RESTRICT).', 'error')
+        flash('Erro ao remover consulta.', 'error')
     return redirect(url_for('consultas_list'))
 
 # --- Rota para Agenda ---
 @app.route('/agenda', methods=['GET', 'POST'])
 def agenda_view():
-    medicos_select = db.get_all_medicos() # Para o dropdown de seleção de médico
+    medicos_select = db.get_all_medicos() 
     consultas_medico = None
     selected_medico_crm = None
     selected_medico_nome = None
@@ -545,7 +553,7 @@ def agenda_view():
 
     if request.method == 'POST':
         selected_medico_crm = request.form.get('medico_CRM')
-        selected_data = request.form.get('data_agenda') # Espera YYYY-MM-DD
+        selected_data = request.form.get('data_agenda') 
 
         if not selected_medico_crm:
             flash('Por favor, selecione um médico.', 'warning')
@@ -554,15 +562,19 @@ def agenda_view():
             if medico_info:
                 selected_medico_nome = medico_info['nome']
             
-            # Se uma data não for fornecida, a função db.get_consultas_by_medico_and_date
-            # mostrará as consultas futuras por padrão.
             consultas_medico = db.get_consultas_by_medico_and_date(selected_medico_crm, selected_data if selected_data else None)
-            if consultas_medico is None: # Erro na query
+            if consultas_medico is None: 
                 flash('Erro ao buscar a agenda do médico.', 'error')
-                consultas_medico = [] # Evitar erro no template
+                consultas_medico = [] 
             elif not consultas_medico:
-                data_formatada = datetime.datetime.strptime(selected_data, '%Y-%m-%d').strftime('%d/%m/%Y') if selected_data else "futuras"
-                flash(f'Nenhuma consulta encontrada para Dr(a). {selected_medico_nome or selected_medico_crm} para as datas {data_formatada}.', 'info')
+                data_formatada_str = "futuras"
+                if selected_data:
+                    try:
+                        data_formatada_str = datetime.datetime.strptime(selected_data, '%Y-%m-%d').strftime('%d/%m/%Y')
+                    except ValueError:
+                        data_formatada_str = selected_data # fallback se formato inesperado
+                
+                flash(f'Nenhuma consulta encontrada para Dr(a). {selected_medico_nome or selected_medico_crm} para as datas {data_formatada_str}.', 'info')
 
 
     return render_template('agenda/agenda_view.html', 
@@ -572,6 +584,78 @@ def agenda_view():
                            selected_medico_nome=selected_medico_nome,
                            selected_data=selected_data)
 
+# --- Rota para Gerenciar Diagnóstico ---
+@app.route('/consultas/<int:id_consulta>/diagnostico', methods=['GET', 'POST'])
+def manage_diagnostico(id_consulta):
+    consulta = db.get_consulta_by_id(id_consulta) # Busca detalhes da consulta
+    if not consulta:
+        flash('Consulta não encontrada!', 'error')
+        return redirect(url_for('consultas_list'))
+
+    diagnostico_existente = db.get_diagnostico_by_consulta_id(id_consulta)
+    doencas_associadas_ids = []
+    if diagnostico_existente:
+        doencas_assoc_dicts = db.get_doencas_for_diagnostico(diagnostico_existente['iddiagnostico'])
+        if doencas_assoc_dicts:
+            doencas_associadas_ids = [d['iddoenca'] for d in doencas_assoc_dicts]
+
+    todas_as_doencas = db.get_all_doencas() # Para o select de doenças (idDoenca, nome)
+
+    if request.method == 'POST':
+        remedios = request.form.get('remediosReceitados')
+        observacoes = request.form.get('observacoes')
+        tratamento = request.form.get('tratamentoRecomendado')
+        # Lista de IDs das doenças selecionadas no formulário
+        doencas_selecionadas_ids = [int(id_str) for id_str in request.form.getlist('doencas_ids[]')]
+
+        # Validação: Pelo menos uma doença deve ser selecionada se um diagnóstico está sendo criado/atualizado
+        if not doencas_selecionadas_ids:
+            flash('É necessário selecionar pelo menos uma doença para o diagnóstico.', 'error')
+            # Repopula o formulário com os dados atuais para correção
+            form_data = {
+                'remediosreceitados': remedios,
+                'observacoes': observacoes,
+                'tratamentorecomendado': tratamento
+            }
+            if diagnostico_existente: # Adiciona o ID se estiver editando
+                 form_data['iddiagnostico'] = diagnostico_existente['iddiagnostico']
+
+            return render_template('diagnostico/manage_diagnostico.html',
+                                   consulta=consulta,
+                                   diagnostico=form_data, # Usa os dados do form
+                                   todas_as_doencas=todas_as_doencas,
+                                   doencas_associadas_ids=doencas_selecionadas_ids) # Usa os selecionados no form
+
+
+        paciente_cpf = consulta['paciente_cpf'] # CPF do paciente da consulta
+
+        if diagnostico_existente:
+            # Atualizar diagnóstico existente
+            id_diagnostico = diagnostico_existente['iddiagnostico']
+            db.update_diagnostico(id_diagnostico, remedios, observacoes, tratamento)
+            db.set_doencas_for_diagnostico(id_diagnostico, doencas_selecionadas_ids)
+            flash('Diagnóstico atualizado com sucesso!', 'success')
+        else:
+            # Adicionar novo diagnóstico
+            id_novo_diagnostico = db.add_diagnostico(remedios, observacoes, tratamento, id_consulta, paciente_cpf)
+            if id_novo_diagnostico:
+                db.set_doencas_for_diagnostico(id_novo_diagnostico, doencas_selecionadas_ids)
+                flash('Diagnóstico adicionado com sucesso!', 'success')
+            else:
+                flash('Erro ao adicionar diagnóstico.', 'error')
+        
+        # Redireciona para a agenda do médico da consulta, se possível, ou para a lista de consultas
+        # Para redirecionar para a agenda, precisaríamos da data, o que pode não estar disponível facilmente aqui.
+        # Por simplicidade, redirecionaremos para a lista geral de consultas ou para a própria página de diagnóstico.
+        return redirect(url_for('manage_diagnostico', id_consulta=id_consulta))
+
+
+    return render_template('diagnostico/manage_diagnostico.html', 
+                           consulta=consulta, 
+                           diagnostico=diagnostico_existente,
+                           todas_as_doencas=todas_as_doencas,
+                           doencas_associadas_ids=doencas_associadas_ids)
+
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)

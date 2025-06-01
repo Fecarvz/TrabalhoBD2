@@ -53,10 +53,11 @@
                         {{ 'Sim' if consulta.realizada else 'Não' }}
                     </span>
                 </td>
-                <td class="flex space-x-2">
-                    <a href="{{ url_for('consulta_edit', id_consulta=consulta.idconsulta) }}" class="btn btn-warning text-xs px-3 py-1">Editar</a>
-                    <form action="{{ url_for('consulta_delete', id_consulta=consulta.idconsulta) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover esta consulta?');">
-                        <button type="submit" class="btn btn-danger text-xs px-3 py-1">Remover</button>
+                <td class="flex space-x-1"> {# Ajustado space-x-1 para caber melhor #}
+                    <a href="{{ url_for('consulta_edit', id_consulta=consulta.idconsulta) }}" class="btn btn-warning text-xs px-2 py-1">Editar</a>
+                    <a href="{{ url_for('manage_diagnostico', id_consulta=consulta.idconsulta) }}" class="btn btn-info text-xs px-2 py-1">Diagnóstico</a>
+                    <form action="{{ url_for('consulta_delete', id_consulta=consulta.idconsulta) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover esta consulta e seu diagnóstico associado (se houver)?');" class="inline">
+                        <button type="submit" class="btn btn-danger text-xs px-2 py-1">Remover</button>
                     </form>
                 </td>
             </tr>

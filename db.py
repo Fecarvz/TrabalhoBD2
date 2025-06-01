@@ -6,7 +6,6 @@ DB_USER = "felipe"
 DB_PASSWORD = "102030"
 DB_HOST = "192.168.1.15"   
 DB_PORT = "5432"       
-
 def get_db_connection():
     """Estabelece uma conexão com o banco de dados PostgreSQL."""
     try:
@@ -25,16 +24,8 @@ def get_db_connection():
 def execute_query(query, params=None, fetchone=False, fetchall=False, commit=False):
     """
     Executa uma query SQL no banco de dados.
-
-    Args:
-        query (str): A string da query SQL.
-        params (tuple, optional): Parâmetros para a query. Defaults to None.
-        fetchone (bool, optional): True para retornar uma única linha. Defaults to False.
-        fetchall (bool, optional): True para retornar todas as linhas. Defaults to False.
-        commit (bool, optional): True para commitar a transação (INSERT, UPDATE, DELETE). Defaults to False.
-
-    Returns:
-        tuple or list or None: Resultado da query ou None em caso de erro.
+    Retorna o resultado da query ou o cursor em caso de commit bem-sucedido,
+    ou None em caso de erro.
     """
     conn = None
     cur = None
@@ -49,14 +40,23 @@ def execute_query(query, params=None, fetchone=False, fetchall=False, commit=Fal
                 result = cur.fetchone()
             elif fetchall:
                 result = cur.fetchall()
-
+            
             if commit:
                 conn.commit()
+                # Para INSERT/UPDATE/DELETE, podemos retornar True ou o cursor se quisermos o rowcount, etc.
+                # Para RETURNING, o fetchone/fetchall já terá pego o resultado.
+                # Se não for RETURNING e for commit, o resultado ainda será None a menos que explicitamente peguemos algo.
+                # Para simplificar, se o commit for bem-sucedido e não houver fetch, podemos retornar True.
+                # No entanto, as funções add_... com RETURNING já retornam o ID.
+                # Se não for RETURNING, o resultado será None por padrão, o que é ok para indicar sucesso se não houver erro.
+                if not fetchone and not fetchall: # Se foi apenas um commit sem fetch
+                    result = True # Indica sucesso da operação de escrita
+
     except psycopg2.Error as e:
         print(f"Erro ao executar query: {e}")
         if conn:
             conn.rollback() 
-        result = None 
+        result = None # Garante que None seja retornado em caso de erro
     finally:
         if cur:
             cur.close()
@@ -76,7 +76,6 @@ def get_all_pacientes_details():
 
 
 def get_paciente_by_cpf(cpf):
-    """Retorna um paciente específico pelo CPF."""
     return execute_query("SELECT * FROM Paciente WHERE CPF = %s;", (cpf,), fetchone=True)
 
 def add_paciente(cpf, nome, telefone, endereco, idade, sexo):
@@ -148,8 +147,8 @@ def delete_especialidade(id_especialidade):
 
 # --- Funções CRUD para Doenca ---
 
-def get_all_doencas():
-    return execute_query("SELECT * FROM Doenca ORDER BY nome;", fetchall=True)
+def get_all_doencas(): # Usado para listar doenças para seleção
+    return execute_query("SELECT idDoenca, nome FROM Doenca ORDER BY nome;", fetchall=True)
 
 def get_doenca_by_id(id_doenca):
     return execute_query("SELECT * FROM Doenca WHERE idDoenca = %s;", (id_doenca,), fetchone=True)
@@ -206,8 +205,19 @@ def get_all_consultas_details():
     """
     return execute_query(query, fetchall=True)
 
-def get_consulta_by_id(id_consulta):
-    return execute_query("SELECT * FROM Consulta WHERE idConsulta = %s;", (id_consulta,), fetchone=True)
+def get_consulta_by_id(id_consulta): # Usado para buscar detalhes da consulta para a página de diagnóstico
+    query = """
+        SELECT 
+            c.idConsulta, c.dataInicio, c.dataFim, c.pago, c.valorPago, c.realizada,
+            p.nome AS paciente_nome, p.CPF AS paciente_CPF,
+            m.nome AS medico_nome, m.CRM AS medico_CRM
+        FROM Consulta c
+        JOIN Paciente p ON c.paciente_CPF = p.CPF
+        JOIN Medico m ON c.medico_CRM = m.CRM
+        WHERE c.idConsulta = %s;
+    """
+    return execute_query(query, (id_consulta,), fetchone=True)
+
 
 def add_consulta(data_inicio, data_fim, pago, valor_pago, realizada, medico_crm, paciente_cpf):
     query = """
@@ -232,14 +242,18 @@ def update_consulta(id_consulta, data_inicio, data_fim, pago, valor_pago, realiz
     return execute_query(query, (data_inicio, data_fim, pago, valor_pago, realizada, medico_crm, paciente_cpf, id_consulta), commit=True)
 
 def delete_consulta(id_consulta):
+    # Antes de deletar a consulta, é preciso deletar o diagnóstico associado, se houver,
+    # devido à FK em Diagnostico (consulta_idConsulta) ser ON DELETE RESTRICT.
+    # Ou alterar a FK para ON DELETE CASCADE no schema.
+    # Por agora, vamos assumir que a lógica de deleção do diagnóstico será tratada antes na app.
+    diagnostico = get_diagnostico_by_consulta_id(id_consulta)
+    if diagnostico:
+        delete_diagnostico(diagnostico['iddiagnostico']) # Deleta o diagnóstico e suas doenças associadas
+
     return execute_query("DELETE FROM Consulta WHERE idConsulta = %s;", (id_consulta,), commit=True)
 
 # --- Funções para Agenda ---
 def get_consultas_by_medico_and_date(medico_crm, data_agenda_str=None):
-    """
-    Retorna as consultas de um médico específico, opcionalmente filtradas por uma data específica.
-    Se data_agenda_str não for fornecida, retorna todas as consultas futuras do médico.
-    """
     params = [medico_crm]
     query_base = """
         SELECT 
@@ -254,22 +268,104 @@ def get_consultas_by_medico_and_date(medico_crm, data_agenda_str=None):
     
     if data_agenda_str:
         try:
-            # Converte a string da data para objeto date
             data_agenda = datetime.datetime.strptime(data_agenda_str, '%Y-%m-%d').date()
-            # Filtra para consultas que iniciam no dia especificado
             query_base += " AND DATE(c.dataInicio) = %s"
             params.append(data_agenda)
         except ValueError:
             print(f"Formato de data inválido: {data_agenda_str}. Mostrando todas as consultas futuras.")
-            # Se a data for inválida, comporta-se como se nenhuma data fosse fornecida
-            query_base += " AND c.dataInicio >= CURRENT_DATE" # Mostra futuras se data inválida
+            query_base += " AND c.dataInicio >= CURRENT_DATE"
     else:
-        # Se nenhuma data for fornecida, mostra todas as consultas futuras (ou do dia atual em diante)
         query_base += " AND c.dataInicio >= CURRENT_DATE"
 
-    query_base += " ORDER BY c.dataInicio ASC;" # Ordena pela data de início
+    query_base += " ORDER BY c.dataInicio ASC;" 
     
     return execute_query(query_base, tuple(params), fetchall=True)
+
+# --- Funções CRUD para Diagnostico ---
+
+def get_diagnostico_by_consulta_id(consulta_id):
+    """Retorna um diagnóstico pela ID da consulta."""
+    return execute_query("SELECT * FROM Diagnostico WHERE consulta_idConsulta = %s;", (consulta_id,), fetchone=True)
+
+def get_diagnostico_by_id(id_diagnostico):
+    """Retorna um diagnóstico pelo seu ID primário."""
+    return execute_query("SELECT * FROM Diagnostico WHERE idDiagnostico = %s;", (id_diagnostico,), fetchone=True)
+
+
+def add_diagnostico(remedios, observacoes, tratamento, consulta_id, paciente_cpf):
+    """Adiciona um novo diagnóstico."""
+    query = """
+        INSERT INTO Diagnostico (remediosReceitados, observacoes, tratamentoRecomendado, consulta_idConsulta, paciente_CPF)
+        VALUES (%s, %s, %s, %s, %s) RETURNING idDiagnostico;
+    """
+    result = execute_query(query, (remedios, observacoes, tratamento, consulta_id, paciente_cpf), commit=True, fetchone=True)
+    return result['iddiagnostico'] if result else None
+
+def update_diagnostico(id_diagnostico, remedios, observacoes, tratamento):
+    """Atualiza um diagnóstico existente."""
+    query = """
+        UPDATE Diagnostico 
+        SET remediosReceitados = %s, observacoes = %s, tratamentoRecomendado = %s
+        WHERE idDiagnostico = %s;
+    """
+    return execute_query(query, (remedios, observacoes, tratamento, id_diagnostico), commit=True)
+
+def delete_diagnostico(id_diagnostico):
+    """Deleta um diagnóstico. Também remove associações em Diagnostico_Doenca devido ao ON DELETE CASCADE."""
+    # A tabela Diagnostico_Doenca tem ON DELETE CASCADE para diagnostico_idDiagnostico,
+    # então as associações de doenças serão removidas automaticamente.
+    return execute_query("DELETE FROM Diagnostico WHERE idDiagnostico = %s;", (id_diagnostico,), commit=True)
+
+
+# --- Funções para Diagnostico_Doenca ---
+
+def get_doencas_for_diagnostico(id_diagnostico):
+    """Retorna todas as doenças associadas a um diagnóstico."""
+    query = """
+        SELECT d.idDoenca, d.nome
+        FROM Doenca d
+        JOIN Diagnostico_Doenca dd ON d.idDoenca = dd.doenca_idDoenca
+        WHERE dd.diagnostico_idDiagnostico = %s
+        ORDER BY d.nome;
+    """
+    return execute_query(query, (id_diagnostico,), fetchall=True)
+
+def add_doenca_to_diagnostico(id_diagnostico, id_doenca):
+    """Associa uma doença a um diagnóstico."""
+    query = "INSERT INTO Diagnostico_Doenca (diagnostico_idDiagnostico, doenca_idDoenca) VALUES (%s, %s);"
+    try:
+        return execute_query(query, (id_diagnostico, id_doenca), commit=True)
+    except psycopg2.IntegrityError: # Caso a associação já exista
+        print(f"Diagnóstico {id_diagnostico} já está associado à doença {id_doenca}.")
+        return False # Indica que não foi uma nova inserção
+
+def remove_doenca_from_diagnostico(id_diagnostico, id_doenca):
+    """Remove a associação de uma doença de um diagnóstico."""
+    query = "DELETE FROM Diagnostico_Doenca WHERE diagnostico_idDiagnostico = %s AND doenca_idDoenca = %s;"
+    return execute_query(query, (id_diagnostico, id_doenca), commit=True)
+
+def set_doencas_for_diagnostico(id_diagnostico, lista_ids_doencas):
+    """
+    Define a lista de doenças para um diagnóstico.
+    Remove as antigas não presentes na nova lista e adiciona as novas.
+    """
+    # 1. Buscar doenças atuais
+    doencas_atuais_dicts = get_doencas_for_diagnostico(id_diagnostico)
+    ids_doencas_atuais = {d['iddoenca'] for d in doencas_atuais_dicts} if doencas_atuais_dicts else set()
+    
+    ids_doencas_novas = set(lista_ids_doencas)
+
+    # 2. Doenças para remover
+    ids_para_remover = ids_doencas_atuais - ids_doencas_novas
+    for id_doenca_remover in ids_para_remover:
+        remove_doenca_from_diagnostico(id_diagnostico, id_doenca_remover)
+
+    # 3. Doenças para adicionar
+    ids_para_adicionar = ids_doencas_novas - ids_doencas_atuais
+    for id_doenca_adicionar in ids_para_adicionar:
+        add_doenca_to_diagnostico(id_diagnostico, id_doenca_adicionar)
+    
+    return True
 
 
 if __name__ == '__main__':

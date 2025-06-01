@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if diagnostico and diagnostico.iddiagnostico %}
+        Editar Diagnóstico
+    {% else %}
+        Adicionar Diagnóstico
+    {% endif %}
+    - Consulta #{{ consulta.idconsulta }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div class="mb-6 pb-4 border-b">
+        <h1 class="text-2xl font-bold text-gray-800">
+            {% if diagnostico and diagnostico.iddiagnostico %}
+                Editar Diagnóstico
+            {% else %}
+                Adicionar Diagnóstico
+            {% endif %}
+        </h1>
+        <p class="text-sm text-gray-600">
+            Consulta ID: <span class="font-semibold">{{ consulta.idconsulta }}</span> | 
+            Paciente: <span class="font-semibold">{{ consulta.paciente_nome }} ({{ consulta.paciente_cpf }})</span> | 
+            Médico: <span class="font-semibold">{{ consulta.medico_nome }} ({{ consulta.medico_crm }})</span> |
+            Data: <span class="font-semibold">{{ consulta.datainicio.strftime('%d/%m/%Y %H:%M') if consulta.datainicio else 'N/A' }}</span>
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('manage_diagnostico', id_consulta=consulta.idconsulta) }}">
+        <div class="mb-4">
+            <label for="remediosReceitados" class="form-label">Remédios Receitados</label>
+            <textarea name="remediosReceitados" id="remediosReceitados" rows="3" class="form-input">{{ diagnostico.remediosreceitados if diagnostico else '' }}</textarea>
+        </div>
+
+        <div class="mb-4">
+            <label for="observacoes" class="form-label">Observações</label>
+            <textarea name="observacoes" id="observacoes" rows="4" class="form-input">{{ diagnostico.observacoes if diagnostico else '' }}</textarea>
+        </div>
+
+        <div class="mb-4">
+            <label for="tratamentoRecomendado" class="form-label">Tratamento Recomendado</label>
+            <textarea name="tratamentoRecomendado" id="tratamentoRecomendado" rows="3" class="form-input">{{ diagnostico.tratamentorecomendado if diagnostico else '' }}</textarea>
+        </div>
+
+        <div class="mb-6">
+            <label class="form-label">Doenças Identificadas <span class="text-red-500">*</span></label>
+            <p class="text-xs text-gray-500 mb-2">Selecione uma ou mais doenças. Pressione Ctrl (ou Cmd em Mac) para selecionar múltiplas.</p>
+            {% if todas_as_doencas %}
+            <select name="doencas_ids[]" id="doencas_ids" multiple class="form-input h-40" required>
+                {% for doenca_item in todas_as_doencas %}
+                <option value="{{ doenca_item.iddoenca }}" 
+                        {% if doenca_item.iddoenca in doencas_associadas_ids %}selected{% endif %}>
+                    {{ doenca_item.nome }}
+                </option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <p class="text-red-500">Nenhuma doença cadastrada no sistema. <a href="{{ url_for('doenca_add') }}" class="text-blue-600 hover:underline">Adicionar Doença</a>.</p>
+            {% endif %}
+        </div>
+
+        <div class="mt-8 flex items-center justify-between gap-x-4">
+            <a href="{{ url_for('agenda_view') }}" class="btn btn-secondary">Voltar para Agenda</a> 
+            {# Ou poderia ser url_for('consultas_list') ou até mesmo histórico do navegador #}
+            <button type="submit" class="btn btn-primary">
+                {% if diagnostico and diagnostico.iddiagnostico %}
+                    Salvar Alterações no Diagnóstico
+                {% else %}
+                    Adicionar Diagnóstico
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
