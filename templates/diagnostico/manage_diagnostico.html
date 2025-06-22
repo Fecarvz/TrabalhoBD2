@@ -30,40 +30,50 @@
     <form method="POST" action="{{ url_for('manage_diagnostico', id_consulta=consulta.idconsulta) }}">
         <div class="mb-4">
             <label for="remediosReceitados" class="form-label">Remédios Receitados</label>
-            <textarea name="remediosReceitados" id="remediosReceitados" rows="3" class="form-input">{{ diagnostico.remediosreceitados if diagnostico else '' }}</textarea>
+            <textarea name="remediosReceitados" id="remediosReceitados" rows="3"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ diagnostico.remediosreceitados if diagnostico else '' }}</textarea>
         </div>
 
         <div class="mb-4">
             <label for="observacoes" class="form-label">Observações</label>
-            <textarea name="observacoes" id="observacoes" rows="4" class="form-input">{{ diagnostico.observacoes if diagnostico else '' }}</textarea>
+            <textarea name="observacoes" id="observacoes" rows="4"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ diagnostico.observacoes if diagnostico else '' }}</textarea>
         </div>
 
         <div class="mb-4">
             <label for="tratamentoRecomendado" class="form-label">Tratamento Recomendado</label>
-            <textarea name="tratamentoRecomendado" id="tratamentoRecomendado" rows="3" class="form-input">{{ diagnostico.tratamentorecomendado if diagnostico else '' }}</textarea>
+            <textarea name="tratamentoRecomendado" id="tratamentoRecomendado" rows="3"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ diagnostico.tratamentorecomendado if diagnostico else '' }}</textarea>
         </div>
 
         <div class="mb-6">
             <label class="form-label">Doenças Identificadas <span class="text-red-500">*</span></label>
             <p class="text-xs text-gray-500 mb-2">Selecione uma ou mais doenças. Pressione Ctrl (ou Cmd em Mac) para selecionar múltiplas.</p>
             {% if todas_as_doencas %}
-            <select name="doencas_ids[]" id="doencas_ids" multiple class="form-input h-40" required>
+            <select name="doencas_ids[]" id="doencas_ids" multiple required
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-40">
                 {% for doenca_item in todas_as_doencas %}
-                <option value="{{ doenca_item.iddoenca }}" 
+                <option value="{{ doenca_item.iddoenca }}"
                         {% if doenca_item.iddoenca in doencas_associadas_ids %}selected{% endif %}>
                     {{ doenca_item.nome }}
                 </option>
                 {% endfor %}
             </select>
             {% else %}
-            <p class="text-red-500">Nenhuma doença cadastrada no sistema. <a href="{{ url_for('doenca_add') }}" class="text-blue-600 hover:underline">Adicionar Doença</a>.</p>
+            <p class="text-red-500">
+                Nenhuma doença cadastrada no sistema.
+                <a href="{{ url_for('doenca_add') }}" class="text-blue-600 hover:underline">Adicionar Doença</a>.
+            </p>
             {% endif %}
         </div>
 
         <div class="mt-8 flex items-center justify-between gap-x-4">
-            <a href="{{ url_for('agenda_view') }}" class="btn btn-secondary">Voltar para Agenda</a> 
-            {# Ou poderia ser url_for('consultas_list') ou até mesmo histórico do navegador #}
-            <button type="submit" class="btn btn-primary">
+            <a href="{{ url_for('agenda_view') }}"
+               class="inline-block px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">
+                Voltar para Agenda
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                 {% if diagnostico and diagnostico.iddiagnostico %}
                     Salvar Alterações no Diagnóstico
                 {% else %}

@@ -9,8 +9,9 @@
         <div class="mb-4">
             <label for="cpf" class="form-label">CPF <span class="text-red-500">*</span></label>
             <input type="text" name="cpf" id="cpf" value="{{ paciente.cpf if paciente else '' }}"
-                   class="form-input" required maxlength="11"
-                   {% if form_action == 'Editar' and paciente.cpf %}readonly class="bg-gray-100"{% endif %}>
+                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form_action == 'Editar' and paciente.cpf %}bg-gray-100{% endif %}"
+                   required maxlength="11"
+                   {% if form_action == 'Editar' and paciente.cpf %}readonly{% endif %}>
             {% if form_action == 'Editar' and paciente.cpf %}
             <p class="text-xs text-gray-500 mt-1">CPF não pode ser alterado.</p>
             {% endif %}
@@ -18,27 +19,33 @@
 
         <div class="mb-4">
             <label for="nome" class="form-label">Nome Completo <span class="text-red-500">*</span></label>
-            <input type="text" name="nome" id="nome" value="{{ paciente.nome if paciente else '' }}" class="form-input" required>
+            <input type="text" name="nome" id="nome" value="{{ paciente.nome if paciente else '' }}"
+                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   required>
         </div>
 
         <div class="mb-4">
             <label for="telefone" class="form-label">Telefone</label>
-            <input type="tel" name="telefone" id="telefone" value="{{ paciente.telefone if paciente else '' }}" class="form-input">
+            <input type="tel" name="telefone" id="telefone" value="{{ paciente.telefone if paciente else '' }}"
+                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="mb-4">
             <label for="endereco" class="form-label">Endereço</label>
-            <textarea name="endereco" id="endereco" rows="3" class="form-input">{{ paciente.endereco if paciente else '' }}</textarea>
+            <textarea name="endereco" id="endereco" rows="3"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ paciente.endereco if paciente else '' }}</textarea>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
                 <label for="idade" class="form-label">Idade</label>
-                <input type="number" name="idade" id="idade" value="{{ paciente.idade if paciente and paciente.idade is not none else '' }}" class="form-input" min="0">
+                <input type="number" name="idade" id="idade" value="{{ paciente.idade if paciente and paciente.idade is not none else '' }}"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
             </div>
             <div>
                 <label for="sexo" class="form-label">Sexo</label>
-                <select name="sexo" id="sexo" class="form-input">
+                <select name="sexo" id="sexo"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="" {% if not paciente or not paciente.sexo %}selected{% endif %}>Selecione...</option>
                     <option value="Masculino" {% if paciente and paciente.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
                     <option value="Feminino" {% if paciente and paciente.sexo == 'Feminino' %}selected{% endif %}>Feminino</option>
@@ -49,8 +56,12 @@
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-4">
-            <a href="{{ url_for('pacientes_list') }}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">
+            <a href="{{ url_for('pacientes_list') }}"
+               class="inline-block px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                 {{ 'Salvar Alterações' if form_action == 'Editar' else 'Adicionar Paciente' }}
             </button>
         </div>
