@@ -3,36 +3,102 @@
 {% block title %}Bem-vindo - Clínica App{% endblock %}
 
 {% block content %}
-<div class="bg-white p-8 rounded-lg shadow-md text-center">
-    <h1 class="text-4xl font-bold text-gray-800 mb-6">Bem-vindo ao Sistema da Clínica</h1>
-    <p class="text-lg text-gray-600 mb-8">
-        Gerencie pacientes, médicos, consultas e muito mais de forma eficiente.
-    </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <a href="{{ url_for('pacientes_list') }}" class="block p-6 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Pacientes</h2>
-            <p>Gerenciar informações de pacientes.</p>
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+            Painel de Controle da Clínica
+        </h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            Gerencie sua clínica de forma simples e eficiente.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <a href="{{ url_for('pacientes_list') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-blue-100 text-blue-600">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.273-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.273.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-blue-600">Pacientes</h2>
+                    <p class="text-gray-500">Gerenciar cadastros.</p>
+                </div>
+            </div>
         </a>
-        <a href="{{ url_for('medicos_list') }}" class="block p-6 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Médicos</h2>
-            <p>Gerenciar informações de médicos.</p>
+
+        <a href="{{ url_for('medicos_list') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-green-100 text-green-600">
+                     <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-green-600">Médicos</h2>
+                    <p class="text-gray-500">Gerenciar corpo clínico.</p>
+                </div>
+            </div>
         </a>
-        <a href="{{ url_for('especialidades_list') }}" class="block p-6 bg-indigo-500 text-white rounded-lg shadow-md hover:bg-indigo-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Especialidades</h2>
-            <p>Gerenciar especialidades médicas.</p>
+
+        <a href="{{ url_for('especialidades_list') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                 <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-indigo-100 text-indigo-600">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-indigo-600">Especialidades</h2>
+                    <p class="text-gray-500">Gerenciar áreas médicas.</p>
+                </div>
+            </div>
         </a>
-        <a href="{{ url_for('doencas_list') }}" class="block p-6 bg-purple-500 text-white rounded-lg shadow-md hover:bg-purple-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Doenças</h2>
-            <p>Gerenciar cadastro de doenças.</p>
+
+        <a href="{{ url_for('doencas_list') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                 <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-purple-100 text-purple-600">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-purple-600">Doenças</h2>
+                    <p class="text-gray-500">Consultar CID e doenças.</p>
+                </div>
+            </div>
         </a>
-        <a href="{{ url_for('consultas_list') }}" class="block p-6 bg-teal-500 text-white rounded-lg shadow-md hover:bg-teal-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Consultas</h2>
-            <p>Agendar e gerenciar consultas.</p>
+        
+        <a href="{{ url_for('consultas_list') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                 <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-teal-100 text-teal-600">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-teal-600">Consultas</h2>
+                    <p class="text-gray-500">Agendar e gerenciar.</p>
+                </div>
+            </div>
         </a>
-        <a href="{{ url_for('agenda_view') }}" class="block p-6 bg-orange-500 text-white rounded-lg shadow-md hover:bg-orange-600 transition duration-150">
-            <h2 class="text-2xl font-semibold mb-2">Agenda Médica</h2>
-            <p>Visualizar agenda dos médicos.</p>
+
+        <a href="{{ url_for('agenda_view') }}" class="group block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                 <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-orange-100 text-orange-600">
+                   <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="ml-5">
+                    <h2 class="text-2xl font-bold text-gray-800 group-hover:text-orange-600">Agenda Médica</h2>
+                    <p class="text-gray-500">Visualizar horários.</p>
+                </div>
+            </div>
         </a>
-        </div>
+
+    </div>
 </div>
 {% endblock %}

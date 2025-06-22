@@ -21,7 +21,7 @@
         .form-label { @apply block text-sm font-medium text-gray-700; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
     <nav class="bg-gray-800 text-white p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{{ url_for('index') }}" class="text-xl font-bold hover:text-gray-300">Clínica App</a>
@@ -36,7 +36,7 @@
         </div>
     </nav>
 
-    <main class="container mx-auto mt-8 p-4">
+    <main class="container mx-auto mt-8 p-4 flex-grow">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -57,8 +57,8 @@
         {% endblock %}
     </main>
 
-    <footer class="bg-gray-800 text-white text-center p-4 mt-8">
-        <p>&copy; {{ current_year }} Clínica App. Todos os direitos reservados.</p>
+    <footer class="bg-gray-800 text-white text-center p-4">
+        <p>&copy; 2025 Clínica App. Todos os direitos reservados.</p>
     </footer>
     {% block scripts %}{% endblock %}
 </body>
